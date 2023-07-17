@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Convert DDS to Bytes</title>
+  <script>
+    function convertDDSToBytes() {
+      var input = document.getElementById('imageInput');
+      var file = input.files[0];
+      
+      var reader = new FileReader();
+      reader.onload = function(event) {
+        var arrayBuffer = event.target.result;
+        var byteArray = new Uint8Array(arrayBuffer);
+        
+        // Use the byte array as needed (e.g., send it to the server, manipulate it, etc.)
+        console.log(byteArray);
+      };
+      
+      reader.readAsArrayBuffer(file);
+    }
+  </script>
+</head>
+<body>
+  <h1>Convert DDS to Bytes</h1>
+  <form>
+    <input type="file" id="imageInput" accept=".dds" />
+    <button type="button" onclick="convertDDSToBytes()">Convert to Bytes</button>
+  </form>
+</body>
+</html>

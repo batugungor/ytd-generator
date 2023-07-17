@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>JavaScript Code</title>
+</head>
+<body>
+  <script>
+    // Define the ResourcePagesInfo class
+    class ResourcePagesInfo {
+      constructor() {
+        this.SystemPagesCount = 0;
+        this.GraphicsPagesCount = 0;
+      }
+    }
+
+    // Define the MemoryStream class
+    class MemoryStream {
+      constructor() {
+        this.Position = 0;
+        // Add any additional required properties or methods
+      }
+      // Add any additional required methods
+    }
+
+    // Define the ResourceDataWriter class
+    class ResourceDataWriter {
+      constructor(systemStream, graphicsStream) {
+        this.systemStream = systemStream;
+        this.graphicsStream = graphicsStream;
+        this.Position = 0;
+        // Add any additional required properties or methods
+      }
+      // Add any additional required methods
+    }
+
+    function assignPositions(blocks, startPosition, pageFlags) {
+      let position = startPosition;
+      let count = 0;
+      for (let i = 0; i < blocks.length; i++) {
+        blocks[i].filePosition = position;
+
+        const posBefore = position;
+        blocks[i].write(); // Assuming there is a "write" method in each block
+        const posAfter = position;
+
+        if (posAfter - posBefore !== blocks[i].blockLength) {
+          throw new Error("Error in block length");
+        }
+
+        position = posAfter;
+        count++;
+      }
+
+      pageFlags.count = count;
+    }
+
+    function getBlocks(fileBase, systemBlocks, graphicBlocks) {
+      // Implementation of "GetBlocks" function
+      // ...
+
+      // Dummy implementation for testing
+      systemBlocks.push({ filePosition: 0x100, blockLength: 10, write: () => {} });
+      systemBlocks.push({ filePosition: 0x200, blockLength: 20, write: () => {} });
+      systemBlocks.push({ filePosition: 0x300, blockLength: 30, write: () => {} });
+
+      graphicBlocks.push({ filePosition: 0x400, blockLength: 40, write: () => {} });
+      graphicBlocks.push({ filePosition: 0x500, blockLength: 50, write: () => {} });
+      graphicBlocks.push({ filePosition: 0x600, blockLength: 60, write: () => {} });
+    }
+
+    function assignResourcePositions(fileBase) {
+      fileBase.FilePagesInfo = new ResourcePagesInfo();
+
+      const systemBlocks = [];
+      const graphicBlocks = [];
+      getBlocks(fileBase, systemBlocks, graphicBlocks);
+
+      const systemPageFlags = {};
+      assignPositions(systemBlocks, 0x50000000, systemPageFlags);
+
+      const graphicsPageFlags = {};
+      assignPositions(graphicBlocks, 0x60000000, graphicsPageFlags);
+
+      fileBase.FilePagesInfo.SystemPagesCount = systemPageFlags.count;
+      fileBase.FilePagesInfo.GraphicsPagesCount = graphicsPageFlags.count;
+
+      const systemStream = new MemoryStream();
+      const graphicsStream = new MemoryStream();
+      const resourceWriter = new ResourceDataWriter(systemStream, graphicsStream);
+
+      resourceWriter.Position = 0x50000000;
+      for (const block of systemBlocks) {
+        resourceWriter.Position = block.filePosition;
+
+        const posBefore = resourceWriter.Position;
+        block.write(resourceWriter);
+        const posAfter = resourceWriter.Position;
+
+        if (posAfter - posBefore !== block.blockLength) {
+          throw new Error("Error in system length");
+        }
+      }
+
+      resourceWriter.Position = 0x60000000;
+      for (const block of graphicBlocks) {
+        resourceWriter.Position = block.filePosition;
+
+        const posBefore = resourceWriter.Position;
+        block.write(resourceWriter);
+        const posAfter = resourceWriter.Position;
+
+        if (posAfter - posBefore !== block.blockLength) {
+          throw new Error("Error in graphics length");
+        }
+      }
+    }
+
+    // Usage example
+    const fileBase = {};
+    assignResourcePositions(fileBase);
+  </script>
+</body>
+</html>

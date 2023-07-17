@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Convert Bytes to File</title>
+  <script>
+    function convertBytesToFile() {
+      var byteList = [
+        82, 83, 67, 55, 13, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 208, 237, 202, 177, 9, 0, 32, 0, 192, 176,
+        250, 153, 39, 248, 255, 53, 58, 186, 10, 142, 9, 116, 107, 213, 56, 205, 90, 93, 70, 111, 94,
+        127, 0, 0, 0, 0, 0, 0, 0, 224, 159, 13
+      ]; // Updated byte list
+      
+      var byteArray = new Uint8Array(byteList); // Convert the byte list to a byte array
+      
+      var blob = new Blob([byteArray], {type: 'application/octet-stream'}); // Create a Blob from the byte array
+      
+      var file = new File([blob], 'output.ytd', {type: 'application/octet-stream'}); // Create a File from the Blob
+      
+      // Create a download link and trigger the download
+      var link = document.createElement('a');
+      link.href = URL.createObjectURL(file);
+      link.download = 'output.ytd';
+      link.click();
+    }
+  </script>
+</head>
+<body>
+  <h1>Convert Bytes to File</h1>
+  <button onclick="convertBytesToFile()">Download File</button>
+</body>
+</html>

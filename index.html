@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Download YTD File</title>
+</head>
+<body>
+  <script>
+    function createResourceFileEntry(data, version) {
+      var resentry = {};
+
+      // Check if the data has an RSC7 header
+      var rsc7 = new Uint32Array(data.slice(0, 4))[0];
+      if (rsc7 === 0x37435352) {
+        var header = new DataView(data.buffer, 4);
+        version = header.getInt32(0, true);
+        resentry.SystemFlags = header.getUint32(4, true);
+        resentry.GraphicsFlags = header.getUint32(8, true);
+
+        if (data.length > 16) {
+          data = data.subarray(16); // Trim the header from the data
+        } else {
+          data = new Uint8Array(0); // Empty data
+        }
+      } else {
+        // Direct load from file without the RPF header
+        // Assume it's in resource meta format
+        resentry.SystemFlags = getFlagsFromSize(data.length, 0);
+        resentry.GraphicsFlags = getFlagsFromSize(0, version);
+      }
+
+      resentry.Name = "";
+      resentry.NameLower = "";
+
+      return resentry;
+    }
+
+    function getFlagsFromSize(size, version) {
+      var flags = (size & 0x3FFFFFFF) | (version << 30);
+      return flags >>> 0; // Convert to unsigned integer
+    }
+
+    function downloadYtd(data, filename) {
+      var blob = new Blob([data], { type: 'application/octet-stream' });
+
+      var anchor = document.createElement('a');
+      anchor.href = URL.createObjectURL(blob);
+      anchor.download = filename;
+      anchor.style.display = 'none';
+
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+    }
+
+    // Example usage
+    var data = new Uint8Array([0x37, 0x43, 0x53, 0x52, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+    var version = 1;
+
+    var resentry = createResourceFileEntry(data, version);
+    console.log(resentry);
+
+    // Download the Resource File Entry as a YTD file
+    var ytdData = saveYtd(resentry);
+    downloadYtd(ytdData, 'newYtdFile.ytd');
+
+    function saveYtd(resentry) {
+      var buffer = new ArrayBuffer(16); // Size of the Resource File Entry structure in bytes
+      var dataView = new DataView(buffer);
+
+      dataView.setUint32(0, 0x37435352, true); // RSC7 header
+      dataView.setInt32(4, version, true);
+      dataView.setUint32(8, resentry.SystemFlags, true);
+      dataView.setUint32(12, resentry.GraphicsFlags, true);
+
+      var ytdData = new Uint8Array(buffer);
+      return ytdData;
+    }
+  </script>
+</body>
+</html>
